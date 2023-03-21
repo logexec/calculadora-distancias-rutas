@@ -100,7 +100,7 @@ function calculateAndDisplayRoute(directionsService, directionsRenderer) {
       }
       distanciaTotal = distanciaTotal / 1000; // convierto a km
       duracionTotal = duracionTotal / 60 / 60; // convierto a horas
-
+      summaryDistancias.innerHTML = "";
       summaryDistancias.innerHTML += "<h4><span class='label label-warning'>Ruta Distancia Recorrida: " +  distanciaTotal.toFixed(2) + " km</span><br><br>";
       summaryDistancias.innerHTML += "<h4><span class='label label-warning'>Ruta Duración: " +  duracionTotal.toFixed(2) + " horas</span> <br><br>";
     })
