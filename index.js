@@ -10,6 +10,8 @@ function initMap() {
   document.getElementById("submit").addEventListener("click", () => {
     calculateAndDisplayRoute(directionsService, directionsRenderer);
   });
+
+  document.getElementById("directions-errores").innerHTM = "";
 }
 
 function calculateAndDisplayRoute(directionsService, directionsRenderer) {
@@ -21,7 +23,7 @@ function calculateAndDisplayRoute(directionsService, directionsRenderer) {
   var titulo = true;
   //Spliteo el texarea para leer linea por linea
   var lines = document.getElementById("waypoints").value.split('\n');
-    
+  var cantRutas = 0;
     for(var i = 0;i < lines.length;i++){     // Si es o no header
       if(!lines[i].startsWith("CÓDIGO")) {
 
@@ -36,8 +38,10 @@ function calculateAndDisplayRoute(directionsService, directionsRenderer) {
         ruta = line[15];
         var lat = coor[0]+"."+coor[1];
         var lon = coor[2]+"."+coor[3];
-        console.log(i+" Ruta= " + ruta + " - auxRuta = " + auxRuta);
-        if(ruta != auxRuta && i > 1){          
+        //console.log(i+" Ruta= " + ruta + " - auxRuta = " + auxRuta);
+        if(ruta != auxRuta && i > 1){    
+          cantRutas++;      
+          //document.getElementById("directions-cantrutas").innerHTML = "<h4><span class='label label-info'>Rutas Procesadas: " +  cantRutas + "</span><br><br>";
           cargarRuta2(origen,auxRuta, waypts,directionsService,directionsRenderer,titulo);
           var waypts = [];
           if(titulo) titulo = false;
@@ -63,22 +67,9 @@ function calculateAndDisplayRoute(directionsService, directionsRenderer) {
 
 }
 
-function copiar2(){
-  var copyText = document.getElementById("directions-distancias");
-
-  // Select the text field
-  copyText.select();
-  copyText.setSelectionRange(0, 99999); // For mobile devices
-
-   // Copy the text inside the text field
-  navigator.clipboard.writeText(copyText.value);
-
-  // Alert the copied text
-  alert("Datos copiados ");
-}
 
 function cargarRuta2(origen, ruta, waypts, directionsService,directionsRenderer,titulo){
-  console.log("cargarRuta2");
+  //console.log("cargarRuta2");
           //CARGGO RUTA
           directionsService
           .route({
@@ -94,11 +85,12 @@ function cargarRuta2(origen, ruta, waypts, directionsService,directionsRenderer,
           })
           .then((response) => {
             directionsRenderer.setDirections(response);
-            console.log("RESPONSE = " +  JSON.stringify(response));
+            //console.log("RESPONSE = " +  JSON.stringify(response));
             const route = response.routes[0];
             
             const summaryPanel = document.getElementById("directions-panel");
             const summaryDistancias = document.getElementById("directions-distancias");
+            const summaryErrores = document.getElementById("directions-errores");
 
             var htmlPanel = ""
             if(titulo || !titulo){
@@ -122,7 +114,7 @@ function cargarRuta2(origen, ruta, waypts, directionsService,directionsRenderer,
               if(i < route.legs.length - 1){
                 var punto_hasta = route.legs[i].end_address.split(',');
 
-                console.log(route.legs[i]);
+                //console.log(route.legs[i]);
 
                 distanciaTotal += route.legs[i].distance.value;
                 duracionTotal += route.legs[i].duration.value;   
@@ -152,9 +144,11 @@ function cargarRuta2(origen, ruta, waypts, directionsService,directionsRenderer,
             summaryDistancias.innerHTML += "<h4><span class='label label-warning'>Ruta Distancia Recorrida: " +  distanciaTotal.toFixed(2) + " km</span><br><br>";
             summaryDistancias.innerHTML += "<h4><span class='label label-warning'>Ruta Duración: " +  duracionTotal.toFixed(2) + " horas</span> <br><br>";
           })
-          .catch((e) => window.alert("La solicitud Directions ha fallado " + status));
+          .catch((e) => document.getElementById("directions-errores").innerHTML += "<li>La solicitud Directions ha fallado " + e + "- Ruta " + ruta);
+          //console.log("La solicitud Directions ha fallado " + e + "- Ruta " + ruta));
           waypts = [];
         //FIN CARGO RUTA
 }
+
 
 window.initMap = initMap;

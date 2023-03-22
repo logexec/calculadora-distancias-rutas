@@ -46,7 +46,11 @@
       </div>
       <div class="row">
         <div class="col-sm-12" >
-          <button onclick="CopyToClipboard('directions-distancias')">Copy text</button>
+          <br>
+          <button  class="btn btn-primary" onclick="CopyToClipboard('directions-panel')">Copiar Resultado</button>
+          <br><br>
+          <div id="directions-cantrutas"></div>
+          <div id="directions-errores"></div>
           <div id="directions-distancias"></div>
           <div id="directions-panel"></div>
         </div>       
@@ -55,20 +59,22 @@
     </div>
 
     <script>
-function CopyToClipboard(containerid) {
-  if (document.selection) {
-    var range = document.body.createTextRange();
-    range.moveToElementText(document.getElementById(containerid));
-    range.select().createTextRange();
-    document.execCommand("copy");
-  } else if (window.getSelection) {
-    var range = document.createRange();
-    range.selectNode(document.getElementById(containerid));
-    window.getSelection().addRange(range);
-    document.execCommand("copy");
-    alert("Text has been copied, now paste in the text-area")
-  }
-}
+      function CopyToClipboard(containerid) {
+          // Get the HTML content of the div element with id "myDiv"
+        var htmlContent = document.getElementById(containerid).innerHTML;
+
+        // Create a temporary textarea element to hold the copied text
+        var tempElement = document.createElement("textarea");
+        tempElement.value = htmlContent;
+        document.body.appendChild(tempElement);
+
+        // Select the content of the textarea and copy it to the clipboard
+        tempElement.select();
+        document.execCommand("copy");
+
+        // Remove the temporary element from the document
+        document.body.removeChild(tempElement);
+      }
     </script>
 
     <script
