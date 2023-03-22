@@ -1,7 +1,7 @@
 function initMap() {
-  const directionsService = new google.maps.DirectionsService();
-  const directionsRenderer = new google.maps.DirectionsRenderer();
-  const map = new google.maps.Map(document.getElementById("map"), {
+  var directionsService = new google.maps.DirectionsService();
+  var directionsRenderer = new google.maps.DirectionsRenderer();
+  var map = new google.maps.Map(document.getElementById("map"), {
     zoom: 8,
     center: { lat: 0.0, lng: -78.65 },
   });
@@ -17,19 +17,36 @@ function calculateAndDisplayRoute(directionsService, directionsRenderer) {
   var waypts = [];
   const checkboxArray = document.getElementById("waypoints");
   var origen = "";
+  var ruta = "";
+  var titulo = true;
   //Spliteo el texarea para leer linea por linea
   var lines = document.getElementById("waypoints").value.split('\n');
     
     for(var i = 0;i < lines.length;i++){     // Si es o no header
       if(!lines[i].startsWith("CÓDIGO")) {
-        
-        //Spliteo la linea para separar las columnas (tabulador)
-        var line = lines[i].split('\u0009');   
 
-        //Spliteo las coordenadas
-        var coor = line[3].split(',');
+        //Spliteo la linea para separar las columnas (tabulador)
+        var line = lines[i].split('\u0009');
         
-        origen = line[33];        
+        //console.log(line);
+        
+        //Spliteo las coordenadas
+        var coor = line[3].split(',');        
+        origen = line[33];
+        ruta = line[15];
+        var lat = coor[0]+"."+coor[1];
+        var lon = coor[2]+"."+coor[3];
+        console.log(i+" Ruta= " + ruta + " - auxRuta = " + auxRuta);
+        if(ruta != auxRuta && i > 1){          
+          cargarRuta2(origen,auxRuta, waypts,directionsService,directionsRenderer,titulo);
+          var waypts = [];
+          if(titulo) titulo = false;
+        }
+        
+
+        var auxRuta = line[15];
+
+
 
         //Agrego las coordenadas al array
         waypts.push(
@@ -37,74 +54,107 @@ function calculateAndDisplayRoute(directionsService, directionsRenderer) {
           location: new google.maps.LatLng(coor[0]+"."+coor[1],coor[2]+"."+coor[3]),
           stopover: true
         });
-      }
-
-    }
- /*
-  var waypts = [];
-  
-  const checkboxArray = document.getElementById("waypoints");
- 
-  for (let i = 0; i < checkboxArray.length; i++) {
-  
-    if (checkboxArray.options[i].selected) {
-      var coor = checkboxArray.options[i].value.split(',');
-      alert(coor[1]);
       
-      waypts.push(
-        {      
-        location: new google.maps.LatLng(coor[0],coor[1]),
-        stopover: true
-      });
+      
+      }          
     }
-  }  
-  */
+    cargarRuta2(origen,auxRuta, waypts,directionsService,directionsRenderer);
 
- //alert(JSON.stringify(waypts));
-  directionsService
-    .route({
-      origin: origen+",Ecuador",//document.getElementById("start").value,
-      destination: origen+",Ecuador",//document.getElementById("end").value,
-      waypoints: waypts,
-      /*[{
-        location:new google.maps.LatLng(-0.184255846752235,-78.4785660822308),
-      stopover:false}],     */
-      optimizeWaypoints: true,
-      provideRouteAlternatives: true,
-      travelMode: google.maps.TravelMode.DRIVING,
-    })
-    .then((response) => {
-      directionsRenderer.setDirections(response);
 
-      const route = response.routes[0];
-      const summaryPanel = document.getElementById("directions-panel");
-      const summaryDistancias = document.getElementById("directions-distancias");
+}
 
-      summaryPanel.innerHTML = "<br><br>";
+function copiar2(){
+  var copyText = document.getElementById("directions-distancias");
 
-      // For each route, display summary information.
-      var distanciaTotal = 0;
-      var duracionTotal = 0;
-      //console.log(route.legs);
-      for (let i = 0; i < route.legs.length; i++) {
-        const routeSegment = i + 1;
+  // Select the text field
+  copyText.select();
+  copyText.setSelectionRange(0, 99999); // For mobile devices
 
-        summaryPanel.innerHTML +=
-          "<b>Segmento de Ruta N°: " + routeSegment + "</b><br>";
-        summaryPanel.innerHTML += route.legs[i].start_address + " hacia ";
-        summaryPanel.innerHTML += route.legs[i].end_address + "<br>";
-        summaryPanel.innerHTML += route.legs[i].distance.text + "<br><br>";
-        
-        distanciaTotal += route.legs[i].distance.value;
-        duracionTotal += route.legs[i].duration.value;        
-      }
-      distanciaTotal = distanciaTotal / 1000; // convierto a km
-      duracionTotal = duracionTotal / 60 / 60; // convierto a horas
-      summaryDistancias.innerHTML = "";
-      summaryDistancias.innerHTML += "<h4><span class='label label-warning'>Ruta Distancia Recorrida: " +  distanciaTotal.toFixed(2) + " km</span><br><br>";
-      summaryDistancias.innerHTML += "<h4><span class='label label-warning'>Ruta Duración: " +  duracionTotal.toFixed(2) + " horas</span> <br><br>";
-    })
-    .catch((e) => window.alert("La solicitud Directions ha fallado " + status));
+   // Copy the text inside the text field
+  navigator.clipboard.writeText(copyText.value);
+
+  // Alert the copied text
+  alert("Datos copiados ");
+}
+
+function cargarRuta2(origen, ruta, waypts, directionsService,directionsRenderer,titulo){
+  console.log("cargarRuta2");
+          //CARGGO RUTA
+          directionsService
+          .route({
+            origin: origen+",Ecuador",//document.getElementById("start").value,
+            destination: origen+",Ecuador",//document.getElementById("end").value,
+            waypoints: waypts,
+            /*[{
+              location:new google.maps.LatLng(-0.184255846752235,-78.4785660822308),
+            stopover:false}],     */
+            optimizeWaypoints: true,
+            provideRouteAlternatives: true,
+            travelMode: google.maps.TravelMode.DRIVING,
+          })
+          .then((response) => {
+            directionsRenderer.setDirections(response);
+            console.log("RESPONSE = " +  JSON.stringify(response));
+            const route = response.routes[0];
+            
+            const summaryPanel = document.getElementById("directions-panel");
+            const summaryDistancias = document.getElementById("directions-distancias");
+
+            var htmlPanel = ""
+            if(titulo || !titulo){
+              htmlPanel = "<table style='width:100%;' class='table'> <thead><tr><th scope='col'>Cod Ruta</th><th scope='col'>Origen</th><th scope='col'>Km Total</th><th scope='col'>Tiempo Total (Horas)</th><th scope='col'>Ult. Punto </th><th scope='col'>Recorrido </th></tr></thead><tbody><tr>";
+            }else{
+              htmlPanel = "<table class='table'> <thead></thead><tbody><tr>";
+            }
+
+            // For each route, display summary information.
+            var distanciaTotal = 0;
+            var duracionTotal = 0;
+            var puntos = "<ol>";
+            //console.log(route.legs);
+            for (let i = 0; i < route.legs.length; i++) {
+              const routeSegment = i + 1;                 
+
+              if(i == route.legs.length - 2){
+                  var ultimo_punto = route.legs[i].end_address.split(',');
+                  //var altitud = getAltitude(lat, lng);
+              }
+              if(i < route.legs.length - 1){
+                var punto_hasta = route.legs[i].end_address.split(',');
+
+                console.log(route.legs[i]);
+
+                distanciaTotal += route.legs[i].distance.value;
+                duracionTotal += route.legs[i].duration.value;   
+                var punto = route.legs[i].start_address.split(',');
+                puntos +=  "<li>  " + punto_hasta[1] + ", " +punto_hasta[2] + " (" + route.legs[i].distance.text + ")"   ;
+              }
+            }
+            puntos +="</ol>";
+
+            distanciaTotal = distanciaTotal / 1000; // convierto a km
+            duracionTotal = duracionTotal / 60 / 60; // convierto a horas
+
+            htmlPanel += "<td scope='row'>"+ ruta +"</td>";
+            htmlPanel += "<td scope='row'>"+ origen + "</td>";
+            htmlPanel += "<td scope='row'>" + distanciaTotal.toFixed(2) +  "</td>";
+            htmlPanel += "<td scope='row'>" + duracionTotal.toFixed(2) + "</td>";
+            htmlPanel += "<td scope='row'>" + ultimo_punto[1] + "</td>";
+            htmlPanel += "<td scope='row'>" + puntos + "</td>";
+
+            htmlPanel += "</tr></tbody></table>"
+
+            summaryPanel.innerHTML += htmlPanel;
+
+          // summaryPanel.innerHTML += "</tr></tbody></table>";
+            
+            summaryDistancias.innerHTML = "";
+            summaryDistancias.innerHTML += "<h4><span class='label label-warning'>Ruta Distancia Recorrida: " +  distanciaTotal.toFixed(2) + " km</span><br><br>";
+            summaryDistancias.innerHTML += "<h4><span class='label label-warning'>Ruta Duración: " +  duracionTotal.toFixed(2) + " horas</span> <br><br>";
+          })
+          .catch((e) => window.alert("La solicitud Directions ha fallado " + status));
+          waypts = [];
+        //FIN CARGO RUTA
 }
 
 window.initMap = initMap;
